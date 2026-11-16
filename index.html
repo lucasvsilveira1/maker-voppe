@@ -674,9 +674,9 @@ if(!mobile)return;
 function show(){bar.style.display='flex'}
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;txt.textContent='📲 Instale o app Maker Voppe';go.textContent='Instalar';show()});
 window.addEventListener('appinstalled',function(){bar.style.display='none'});
-if(ios){txt.innerHTML='📲 Para instalar: toque em <b>Compartilhar</b> (□↑) e depois em <b>Adicionar à Tela de Início</b>';go.style.display='none';setTimeout(show,1500)}
+if(ios){txt.innerHTML='📲 Para instalar: toque em <b>Compartilhar</b> (□↑) e depois em <b>Adicionar à Tela de Início</b>';go.textContent='Como instalar';setTimeout(show,1500)}
 else setTimeout(function(){if(!dp){txt.innerHTML='📲 Para instalar: toque nos <b>3 pontinhos</b> do navegador e em <b>Instalar app</b>';go.style.display='none';show()}},3000);
-go.onclick=function(){if(dp){dp.prompt();dp.userChoice.then(function(){bar.style.display='none'})}};
+go.onclick=function(){if(dp){dp.prompt();dp.userChoice.then(function(){bar.style.display='none'})}else if(ios){var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px';o.innerHTML='<div style="background:#1a1030;border:1px solid #7C3AFF;border-radius:18px;padding:22px;max-width:340px;color:#fff;font:500 16px/1.5 Inter,sans-serif"><div style="font:700 22px Rajdhani,sans-serif;margin-bottom:10px">Instalar no iPhone</div>1. Toque em <b>Compartilhar</b> (o quadrado com seta &#8593;, na barra do Safari)<br>2. Role e toque em <b>Adicionar à Tela de Início</b><br>3. Toque em <b>Adicionar</b><br><br><small style="color:#aaa">Precisa ser no Safari.</small><br><button style="margin-top:14px;width:100%;border:0;border-radius:10px;padding:12px;background:#7C3AFF;color:#fff;font:700 16px Rajdhani,sans-serif">Entendi</button></div>';o.onclick=function(){o.remove()};document.body.appendChild(o)}};
 document.getElementById('inst-x').onclick=function(){bar.style.display='none';ls('mv-inst-x','1')};
 })();</script>
 </body>
