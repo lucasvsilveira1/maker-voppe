@@ -23,7 +23,7 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 h1,h2,h3,.btn,nav{font-family:'Rajdhani',sans-serif}
-nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;height:62px;background:rgba(8,8,15,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:env(safe-area-inset-top,0px) 5vw 0;height:calc(62px + env(safe-area-inset-top,0px));background:rgba(8,8,15,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
 .nav-logo{font-size:22px;font-weight:700;color:var(--text);text-decoration:none;font-family:'Rajdhani',sans-serif}
 .nav-logo span{color:var(--cyan)}
 .nav-links{display:flex;gap:24px;list-style:none}
