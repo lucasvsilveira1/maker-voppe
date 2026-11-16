@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#7C3AFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Maker Voppe">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maker Voppe — Impressões 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#08080F;--bg2:#0F0F1A;--bg3:#16162A;--purple:#7C3AFF;--pb:#9D5FFF;--cyan:#00E5FF;--magenta:#FF2D78;--text:#F0EEFF;--muted:#7A7A9A;--border:rgba(124,58,255,0.18);--radius:12px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.btn,nav{font-family:'Rajdhani',sans-serif}
+nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;height:62px;background:rgba(8,8,15,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-logo{font-size:22px;font-weight:700;color:var(--text);text-decoration:none;font-family:'Rajdhani',sans-serif}
+.nav-logo span{color:var(--cyan)}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:15px;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-right{display:flex;gap:10px;align-items:center}
+#cart-btn{position:relative;background:transparent;border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700}
+#cart-count{position:absolute;top:-6px;right:-6px;background:var(--magenta);color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.nav-cta{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;padding:8px 16px;border-radius:8px;background:var(--purple);color:#fff;border:none;cursor:pointer}
+.btn-adm{background:rgba(0,229,255,0.12)!important;color:var(--cyan)!important;border:1px solid rgba(0,229,255,0.3)!important}
+.user-badge{display:none;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.adm-dot{background:var(--magenta)!important;box-shadow:0 0 6px var(--magenta)!important}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:440px;position:relative;max-height:92vh;overflow-y:auto}
+.modal h2{font-size:26px;font-weight:700;margin-bottom:6px;font-family:'Rajdhani',sans-serif}
+.modal p.sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:11px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;font-family:'Inter',sans-serif}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--purple)}
+.form-field select option{background:var(--bg3)}
+.form-field textarea{resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-full{width:100%;padding:13px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;border:none;cursor:pointer;margin-top:4px}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-magenta{background:var(--magenta);color:#fff}
+.btn-cyan-full{background:var(--cyan);color:#08080F}
+.modal-switch{text-align:center;margin-top:14px;font-size:13px;color:var(--muted)}
+.modal-switch a{color:var(--cyan);cursor:pointer}
+.msg-error{color:#ff6b6b;font-size:13px;margin-bottom:12px;display:none;padding:8px 12px;background:rgba(255,107,107,.1);border-radius:6px}
+.msg-ok{color:#6bffb8;font-size:13px;margin-bottom:12px;display:none;padding:8px 12px;background:rgba(107,255,184,.1);border-radius:6px}
+.preco-box{background:var(--bg3);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:none}
+.preco-box .pval{font-family:'Rajdhani',sans-serif;font-size:30px;font-weight:700;color:var(--cyan)}
+.preco-box small{font-size:12px;color:var(--muted)}
+.upload-area{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-bottom:12px}
+.upload-area:hover{border-color:var(--purple)}
+.upload-area p{color:var(--muted);font-size:13px;margin-top:6px}
+.img-preview{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:none;margin-bottom:12px}
+.adm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.adm-item:last-child{border-bottom:none}
+.adm-item img,.adm-thumb{width:40px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px}
+.adm-info{flex:1;min-width:0}
+.adm-info strong{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm-info span{font-size:12px;color:var(--muted)}
+.btn-del{background:rgba(255,45,120,.15);color:var(--magenta);border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px}
+.cart-modal{max-width:480px}
+.cart-items{max-height:280px;overflow-y:auto;margin-bottom:16px}
+.cart-item{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.cthumb{width:44px;height:44px;border-radius:8px;flex-shrink:0;margin-right:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden}
+.cthumb img{width:100%;height:100%;object-fit:cover}
+.cinfo{flex:1}
+.cname{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700}
+.cprice{font-size:13px;color:var(--muted)}
+.cqty{display:flex;align-items:center;gap:8px;margin-left:12px}
+.qty-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.cart-total{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--border)}
+.cart-total-label{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700}
+.cart-total-val{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;color:var(--cyan)}
+.cart-empty{text-align:center;padding:36px 0;color:var(--muted)}
+.btn-wpp{background:#25D366;color:#fff}
+.hero{min-height:94vh;display:flex;flex-direction:column;justify-content:center;padding:80px 5vw 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-100px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,255,.18) 0%,transparent 65%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-100px;left:10%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,.1) 0%,transparent 70%);pointer-events:none}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:500;letter-spacing:1.8px;color:var(--cyan);border:1px solid rgba(0,229,255,.3);padding:5px 14px;border-radius:20px;margin-bottom:32px;width:fit-content;text-transform:uppercase}
+.hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+h1{font-size:clamp(52px,9vw,104px);font-weight:700;line-height:.95;max-width:720px;margin-bottom:28px}
+.ac{color:var(--cyan)}.ap{color:var(--pb)}
+.hero-sub{font-size:18px;color:var(--muted);max-width:460px;line-height:1.65;margin-bottom:44px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 30px;border-radius:var(--radius);font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;border:none;transition:transform .15s;font-family:'Rajdhani',sans-serif}
+.btn:hover{transform:translateY(-2px)}
+.btn-primary{background:var(--purple);color:#fff;box-shadow:0 0 24px rgba(124,58,255,.4)}
+.btn-cyan{background:var(--cyan);color:#08080F}
+.hero-stats{display:flex;gap:44px;margin-top:80px;flex-wrap:wrap}
+.snum{font-family:'Rajdhani',sans-serif;font-size:38px;font-weight:700;line-height:1}
+.cp{color:var(--pb)}.cc{color:var(--cyan)}.cm{color:var(--magenta)}
+.slabel{font-size:13px;color:var(--muted);margin-top:5px}
+.divider{height:1px;background:var(--border);margin:0 5vw}
+section{padding:80px 5vw}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:500;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+.sec-title{font-family:'Rajdhani',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;margin-bottom:10px}
+.sec-sub{color:var(--muted);max-width:460px;font-size:15px;margin-bottom:48px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px}
+.filter-btn{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;padding:7px 18px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .2s}
+.filter-btn:hover{border-color:var(--purple);color:var(--text)}
+.filter-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.product-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .25s,transform .2s,box-shadow .25s;position:relative}
+.product-card:hover{border-color:var(--pb);transform:translateY(-4px);box-shadow:0 8px 40px rgba(124,58,255,.2)}
+.product-card.hidden{display:none}
+.pimg{width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#12122A 0%,#1A1040 100%);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden}
+.pimg img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.pbadge{position:absolute;top:12px;left:12px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.2px;padding:3px 10px;border-radius:6px;text-transform:uppercase;z-index:1}
+.bp{background:var(--purple);color:#fff}
+.bc{background:var(--cyan);color:#08080F}
+.bm{background:var(--magenta);color:#fff}
+.del-card{position:absolute;top:8px;right:8px;background:rgba(255,45,120,.85);color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;display:none;z-index:2}
+.product-card:hover .del-card{display:block}
+.pbody{padding:20px}
+.pcat{font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.pname{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px}
+.pmeta{font-size:11px;color:var(--muted);margin-bottom:8px}
+.pdesc{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.pfooter{display:flex;align-items:center;justify-content:space-between}
+.pprice{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--cyan)}
+.btn-add{font-size:13px;padding:8px 18px;background:transparent;border:1px solid var(--purple);color:var(--pb);border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;text-decoration:none;transition:background .15s,color .15s}
+.btn-add:hover{background:var(--purple);color:#fff}
+.bambu-sec{background:var(--bg2)}
+.bambu-inner{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.bambu-steps{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.bambu-step{display:flex;align-items:center;gap:14px;font-size:15px;color:var(--muted)}
+.bnum{color:var(--cyan);font-size:20px;font-weight:700;font-family:'Rajdhani',sans-serif;width:28px;flex-shrink:0}
+.bambu-card{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:32px;text-align:center}
+.how{background:var(--bg2)}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+.step{padding:28px 24px;border-radius:16px;border:1px solid var(--border);background:var(--bg3);position:relative;overflow:hidden}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.step:nth-child(1)::before{background:var(--purple)}
+.step:nth-child(2)::before{background:var(--cyan)}
+.step:nth-child(3)::before{background:var(--magenta)}
+.step:nth-child(4)::before{background:var(--pb)}
+.step-num{font-family:'Rajdhani',sans-serif;font-size:44px;font-weight:700;color:var(--purple);opacity:.3;line-height:1;margin-bottom:14px}
+.step-title{font-family:'Rajdhani',sans-serif;font-size:19px;font-weight:700;margin-bottom:8px}
+.step-desc{font-size:14px;color:var(--muted);line-height:1.55}
+.contact-inner{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.contact-text p{color:var(--muted);font-size:15px;line-height:1.7;margin-top:12px}
+.contact-cards{display:flex;flex-direction:column;gap:14px}
+.contact-card{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:14px;background:var(--bg3);border:1px solid var(--border);text-decoration:none;color:var(--text);transition:border-color .2s}
+.contact-card:hover{border-color:var(--cyan)}
+.cicon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.icon-wpp{background:rgba(37,211,102,.15)}.icon-ig{background:rgba(255,45,120,.15)}.icon-ml{background:rgba(255,230,0,.1)}
+.contact-card strong{display:block;font-weight:500;font-size:15px}
+.contact-card span{font-size:13px;color:var(--muted)}
+footer{border-top:1px solid var(--border);padding:28px 5vw;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700}
+.footer-logo span{color:var(--cyan)}
+footer p{font-size:13px;color:var(--muted)}
+@media(max-width:700px){.nav-links{display:none}.contact-inner,.bambu-inner{grid-template-columns:1fr}.hero-stats{gap:28px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">Maker <span>Voppe</span></a>
+  <ul class="nav-links">
+    <li><a href="#produtos">Catálogo</a></li>
+    <li><a href="#bambu">Bambu Handy</a></li>
+    <li><a href="#como-funciona">Como funciona</a></li>
+    <li><a href="#contato">Contato</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="user-badge" id="user-badge"><div class="user-dot" id="user-dot"></div><span id="user-name-nav"></span></div>
+    <button id="cart-btn" onclick="abrirCarrinho()">🛒 Carrinho <span id="cart-count">0</span></button>
+    <button class="nav-cta btn-adm" id="adm-btn" style="display:none" onclick="abrirAdm()">⚙️ Admin</button>
+    <button class="nav-cta" id="auth-btn" onclick="abrirLogin()">Entrar</button>
+    <button class="nav-cta" id="logout-btn" style="display:none;background:transparent;border:1px solid var(--border);color:var(--muted)" onclick="logout()">Sair</button>
+  </div>
+</nav>
+
+<!-- AUTH -->
+<div class="overlay" id="auth-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharOverlay('auth-overlay')">✕</button>
+    <div id="login-form">
+      <h2>Entrar</h2><p class="sub">Acesse sua conta para fazer pedidos</p>
+      <div class="msg-error" id="login-err"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
+      <div class="form-field"><label>Senha</label><input type="password" id="login-senha" placeholder="••••••••"></div>
+      <button class="btn-full btn-purple" onclick="fazerLogin()">Entrar</button>
+      <div class="modal-switch">Não tem conta? <a onclick="mostrarCadastro()">Cadastre-se grátis</a></div>
+    </div>
+    <div id="cadastro-form" style="display:none">
+      <h2>Criar conta</h2><p class="sub">Grátis e sem cartão</p>
+      <div class="msg-error" id="cad-err"></div><div class="msg-ok" id="cad-ok"></div>
+      <div class="form-field"><label>Nome</label><input type="text" id="cad-nome" placeholder="Seu nome completo"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="cad-email" placeholder="seu@email.com"></div>
+      <div class="form-field"><label>Senha</label><input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-full btn-purple" onclick="fazerCadastro()">Criar conta</button>
+      <div class="modal-switch">Já tem conta? <a onclick="mostrarLogin()">Entrar</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADM -->
+<div class="overlay" id="adm-overlay">
+  <div class="modal" style="max-width:500px">
+    <button class="modal-close" onclick="fecharOverlay('adm-overlay')">✕</button>
+    <h2>⚙️ Adicionar Produto</h2><p class="sub">Preencha os dados — o preço é calculado automaticamente</p>
+    <div class="msg-error" id="prod-err"></div><div class="msg-ok" id="prod-ok"></div>
+    <div class="form-field"><label>Nome do produto</label><input type="text" id="prod-nome" placeholder="Ex: Vaso Geométrico"></div>
+    <div class="form-field"><label>Descrição</label><textarea id="prod-desc" placeholder="Descreva brevemente..."></textarea></div>
+    <div class="form-row">
+      <div class="form-field"><label>Categoria</label>
+        <select id="prod-cat"><option value="organizacao">Organização</option><option value="presentes">Presentes</option><option value="tecnico">Técnico</option><option value="decoracao">Decoração</option></select>
+      </div>
+      <div class="form-field"><label>Destaque</label>
+        <select id="prod-badge"><option value="">Nenhum</option><option value="Popular">Popular</option><option value="Novo">Novo</option><option value="Destaque">Destaque</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>⏱ Tempo (horas)</label><input type="number" id="prod-horas" placeholder="Ex: 3.5" min="0" step="0.5" oninput="calcPreco()"></div>
+      <div class="form-field"><label>⚖️ Filamento (gramas)</label><input type="number" id="prod-gramas" placeholder="Ex: 50" min="0" oninput="calcPreco()"></div>
+    </div>
+    <div class="preco-box" id="preco-box">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Preço sugerido</div>
+      <div class="pval" id="preco-val">R$ 0,00</div>
+      <small id="preco-det"></small>
+    </div>
+    <div class="form-field"><label>Foto do produto</label>
+      <div class="upload-area" onclick="document.getElementById('prod-file').click()"><div style="font-size:28px">📸</div><p>Clique para escolher foto</p><p style="font-size:11px;margin-top:3px">JPG, PNG ou WEBP</p></div>
+      <input type="file" id="prod-file" accept="image/*" style="display:none" onchange="previewImg(this)">
+      <img id="prod-preview" class="img-preview">
+    </div>
+    <button class="btn-full btn-magenta" onclick="publicarProduto()">Adicionar ao catálogo</button>
+    <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px">Produtos cadastrados</div>
+      <div id="prod-lista" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARRINHO -->
+<div class="overlay" id="cart-overlay">
+  <div class="modal cart-modal">
+    <button class="modal-close" onclick="fecharOverlay('cart-overlay')">✕</button>
+    <h2>Seu carrinho</h2><p class="sub">Revise os itens, pague com Pix e envie o pedido pelo WhatsApp</p>
+    <div class="cart-items" id="cart-items-list"></div>
+    <div class="cart-total"><span class="cart-total-label">Total</span><span class="cart-total-val" id="cart-total-val">R$ 0</span></div>
+    <div id="pix-box" style="display:none;text-align:center;border:1px solid var(--border);border-radius:12px;padding:14px;margin:6px 0 10px">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px">1) Pague com Pix</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Escaneie o QR Code no app do seu banco. O valor já vem preenchido.</p>
+      <div id="pix-qr" style="display:inline-block;background:#fff;padding:10px;border-radius:8px"></div>
+      <div style="font-size:13px;margin-top:10px">Chave Pix: <b id="pix-chave"></b></div>
+      <div style="font-size:13px">Nome: <b>Lucas Voppe Silveira</b></div>
+      <button class="btn-full" style="background:var(--border);color:inherit;font-size:14px;padding:9px;margin-top:8px" onclick="copiarPix()">📋 Copiar Pix copia e cola</button>
+    </div>
+    <div id="comp-box" style="display:none;border:1px dashed var(--border);border-radius:12px;padding:12px;margin:0 0 10px">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px">2) Anexe o comprovante</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Depois de pagar, anexe aqui a foto ou o PDF do comprovante do Pix. Seu pedido só é enviado com o comprovante.</p>
+      <input type="file" id="pix-comprovante" accept="image/*,application/pdf" onchange="atualizarBotaoEnviar()" style="width:100%;font-size:13px">
+      <div id="comp-nome" style="font-size:12px;color:var(--cyan);margin-top:6px"></div>
+    </div>
+    <button class="btn-full btn-wpp" id="btn-enviar-pedido" onclick="finalizarPedido()" disabled style="opacity:.5;cursor:not-allowed">📱 3) Enviar pedido pelo WhatsApp</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">Impressão 3D sob encomenda</div>
+  <h1>Impresso pra<br><span class="ac">sua</span><br><span class="ap">vida.</span></h1>
+  <p class="hero-sub">Organização, decoração, presentes e peças técnicas. Tudo personalizado e impresso com precisão pra você.</p>
+  <div class="hero-actions">
+    <a href="#produtos" class="btn btn-primary">Ver catálogo</a>
+    <a href="#contato" class="btn btn-cyan">Falar conosco</a>
+  </div>
+  <div class="hero-stats">
+    <div><div class="snum cp">0,2mm</div><div class="slabel">Camadas ultrafinas</div></div>
+    <div><div class="snum cc">100%</div><div class="slabel">Personalizado</div></div>
+    <div><div class="snum cm">4</div><div class="slabel">Categorias</div></div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- PRODUTOS -->
+<section id="produtos">
+  <div class="eyebrow">Catálogo</div>
+  <div class="sec-title">Escolha sua peça</div>
+  <p class="sec-sub">Produtos prontos e sob encomenda. Não achou o que quer? A gente imprime pra você.</p>
+  <div class="filters">
+    <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
+    <button class="filter-btn" onclick="filtrar(this,'organizacao')">Organização</button>
+    <button class="filter-btn" onclick="filtrar(this,'presentes')">Presentes</button>
+    <button class="filter-btn" onclick="filtrar(this,'tecnico')">Técnico</button>
+    <button class="filter-btn" onclick="filtrar(this,'decoracao')">Decoração</button>
+  </div>
+  <div class="product-grid" id="product-grid"></div>
+</section>
+<div class="divider"></div>
+
+<!-- BAMBU HANDY -->
+<section class="bambu-sec" id="bambu">
+  <div class="bambu-inner">
+    <div>
+      <div class="eyebrow">Quer algo diferente?</div>
+      <div class="sec-title" style="margin-bottom:16px">Explore o <span style="color:var(--cyan)">Bambu Handy</span></div>
+      <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:28px">Não achou o que quer no catálogo? No Bambu Handy você encontra milhares de modelos 3D. Escolha o que quiser, manda o link pra gente pelo WhatsApp e a gente imprime pra você!</p>
+      <div class="bambu-steps">
+        <div class="bambu-step"><span class="bnum">1</span>Baixe o app Bambu Handy</div>
+        <div class="bambu-step"><span class="bnum">2</span>Encontre o modelo que quer imprimir</div>
+        <div class="bambu-step"><span class="bnum">3</span>Mande o link pra gente pelo WhatsApp</div>
+      </div>
+      <a href="https://bambulab.com/pt-br/download/app" target="_blank" class="btn btn-cyan" style="width:fit-content">📲 Baixar Bambu Handy</a>
+    </div>
+    <div class="bambu-card">
+      <div style="font-size:72px;margin-bottom:16px">🖨️</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px">Qualquer modelo</div>
+      <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:20px">Encontrou algo no Bambu Handy? Manda o link pelo WhatsApp que a gente passa o orçamento e imprime pra você!</p>
+      <a href="https://wa.me/5511993262850?text=[MAKER VOPPE - ORÇAMENTO DO APP] Olá! Encontrei este modelo no Bambu Handy e gostaria de um orçamento: " target="_blank" class="btn btn-primary" style="width:100%;justify-content:center">📱 Pedir pelo WhatsApp</a>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- COMO FUNCIONA -->
+<section class="how" id="como-funciona">
+  <div class="eyebrow">Processo</div><div class="sec-title">Como funciona</div><p class="sec-sub">Do pedido à entrega, sem complicação.</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">01</div><div class="step-title">Escolha a peça</div><div class="step-desc">Selecione do catálogo, adicione ao carrinho e finalize pelo WhatsApp.</div></div>
+    <div class="step"><div class="step-num">02</div><div class="step-title">Confirmamos</div><div class="step-desc">Enviamos orçamento e prazo. Combinamos tudo antes de imprimir.</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-title">Imprimimos</div><div class="step-desc">Cada peça feita por encomenda com atenção aos detalhes.</div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">Entregamos</div><div class="step-desc">Correios ou retirada em Santana de Parnaíba.</div></div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- CONTATO -->
+<section id="contato">
+  <div class="contact-inner">
+    <div class="contact-text"><div class="eyebrow">Contato</div><div class="sec-title">Vamos criar<br>algo juntos?</div><p>Quer orçamento, tem dúvida ou quer algo fora do catálogo? Chama por qualquer canal.</p></div>
+    <div class="contact-cards">
+      <a class="contact-card" href="https://wa.me/5511993262850" target="_blank"><div class="cicon icon-wpp">📱</div><div><strong>WhatsApp</strong><span>Atendimento rápido</span></div></a>
+      <a class="contact-card" href="https://instagram.com/makervoppe" target="_blank"><div class="cicon icon-ig">📸</div><div><strong>Instagram</strong><span>@makervoppe</span></div></a>
+      <a class="contact-card" href="#" target="_blank"><div class="cicon icon-ml">🛒</div><div><strong>Mercado Livre</strong><span>Compra segura</span></div></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Maker <span>Voppe</span></div>
+  <p>Impressão 3D sob encomenda · Santana de Parnaíba, SP</p>
+</footer>
+
+<script>
+const SB_URL='https://horsuqznczodywnkxvhf.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvcnN1cXpuY3pvZHl3bmt4dmhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0OTAzMDIsImV4cCI6MjEwOTA2NjMwMn0.uwKX5XtdYZfkwn27dpIkWQUcgLBSQHX4HP0aQN5NstA';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const ADM_EMAIL='lucasvsilveira1@gmail.com';
+const SK_U='mv_usuarios',SK_S='mv_sessao';
+const CUSTO_HORA=5,CUSTO_GRAMA=0.15,MARGEM=2;
+let carrinho=[],usuario=null,prodImg=null;
+
+const FIXOS=[
+  {id:'f1',nome:'Organizador de Gaveta',descricao:'Divisórias modulares para gaveta. Tamanho personalizado sob medida.',preco:25,cat:'organizacao',badge:'Popular',emoji:'🗂️'},
+  {id:'f2',nome:'Suporte de Cabos',descricao:'Prendedor de cabo para mesa ou parede. Encaixa em qualquer espessura.',preco:8,cat:'organizacao',badge:'',emoji:'🔌'},
+  {id:'f3',nome:'Gancho de Parede',descricao:'Gancho robusto para chaves, bolsas e acessórios. Fixação com parafuso.',preco:12,cat:'organizacao',badge:'Novo',emoji:'🪝'},
+  {id:'f4',nome:'Porta-Retrato Personalizado',descricao:'Com nome ou data gravada. Personalizado com a fonte que você quiser.',preco:35,cat:'presentes',badge:'Destaque',emoji:'🖼️'},
+  {id:'f5',nome:'Chaveiro Personalizado',descricao:'Nome, símbolo ou forma à sua escolha. Ótimo presente de aniversário.',preco:15,cat:'presentes',badge:'',emoji:'🏷️'},
+  {id:'f6',nome:'Caixinha Surpresa',descricao:'Caixinha com tampa e mensagem gravada. Ideal pra datas especiais.',preco:28,cat:'presentes',badge:'',emoji:'💌'},
+  {id:'f7',nome:'Peça de Reposição',descricao:'Substituição de peças quebradas de eletrodomésticos e equipamentos.',preco:0,cat:'tecnico',badge:'',emoji:'⚙️'},
+  {id:'f8',nome:'Suporte Técnico',descricao:'Brackets, apoios e fixadores personalizados para projetos e instalações.',preco:0,cat:'tecnico',badge:'Novo',emoji:'🔧'},
+  {id:'f9',nome:'Vaso Geométrico',descricao:'Design moderno com formas geométricas. Ideal pra suculentas e cactos.',preco:30,cat:'decoracao',badge:'',emoji:'🪴'},
+  {id:'f10',nome:'Castiçal Moderno',descricao:'Suporte de vela com design minimalista. Perfeito pra mesa de jantar.',preco:22,cat:'decoracao',badge:'Popular',emoji:'🕯️'},
+  {id:'f11',nome:'Escultura de Mesa',descricao:'Peça decorativa abstrata ou temática. Escolha a forma e a cor do filamento.',preco:40,cat:'decoracao',badge:'',emoji:'🌀'},
+  {id:'f12',nome:'Peça sob encomenda',descricao:'Manda o arquivo STL ou descreve o que quer — a gente imprime pra você.',preco:0,cat:'organizacao',badge:'',emoji:'✨'},
+];
+
+function ls(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
+function lss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+function getU(){return ls(SK_U)||{}}
+async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function isAdm(){return usuario&&usuario.email===ADM_EMAIL}
+
+const BC={Popular:'bp',Novo:'bc',Destaque:'bm'};
+// init() movido para o final do script;
+
+function fecharOverlay(id){document.getElementById(id).classList.remove('open')}
+function abrirOverlay(id){document.getElementById(id).classList.add('open')}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+function abrirLogin(){abrirOverlay('auth-overlay');mostrarLogin()}
+function mostrarLogin(){document.getElementById('login-form').style.display='';document.getElementById('cadastro-form').style.display='none';hideMsg('login-err')}
+function mostrarCadastro(){document.getElementById('login-form').style.display='none';document.getElementById('cadastro-form').style.display='';hideMsg('cad-err');hideMsg('cad-ok')}
+function showErr(id,m){const e=document.getElementById(id);e.textContent=m;e.style.display='block'}
+function showOk(id,m){const e=document.getElementById(id);e.textContent=m;e.style.display='block'}
+function hideMsg(id){document.getElementById(id).style.display='none'}
+
+async function fazerCadastro(){
+  const nome=document.getElementById('cad-nome').value.trim();
+  const email=document.getElementById('cad-email').value.trim().toLowerCase();
+  const senha=document.getElementById('cad-senha').value;
+  hideMsg('cad-err');hideMsg('cad-ok');
+  if(!nome)return showErr('cad-err','Informe seu nome.');
+  if(!email||!email.includes('@'))return showErr('cad-err','Email inválido.');
+  if(senha.length<6)return showErr('cad-err','Senha mínimo 6 caracteres.');
+  const u=getU();if(u[email])return showErr('cad-err','Email já cadastrado.');
+  u[email]={nome,email,hash:await hash(senha)};lss(SK_U,u);
+  showOk('cad-ok','✅ Conta criada!');setTimeout(mostrarLogin,1400);
+}
+
+async function fazerLogin(){
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  const senha=document.getElementById('login-senha').value;
+  hideMsg('login-err');
+  if(!email||!senha)return showErr('login-err','Preencha email e senha.');
+  const u=getU();const ud=u[email];
+  if(!ud)return showErr('login-err','Email não encontrado.');
+  if(await hash(senha)!==ud.hash)return showErr('login-err','Senha incorreta.');
+  usuario={nome:ud.nome,email};lss(SK_S,usuario);onLogin();fecharOverlay('auth-overlay');
+}
+
+function onLogin(){
+  document.getElementById('auth-btn').style.display='none';
+  document.getElementById('logout-btn').style.display='';
+  document.getElementById('user-badge').style.display='flex';
+  document.getElementById('user-name-nav').textContent=usuario.nome.split(' ')[0];
+  if(isAdm()){document.getElementById('adm-btn').style.display='';document.getElementById('user-dot').classList.add('adm-dot');}
+  carregarProdutos();
+}
+
+function logout(){
+  usuario=null;lss(SK_S,null);
+  document.getElementById('auth-btn').style.display='';
+  document.getElementById('logout-btn').style.display='none';
+  document.getElementById('user-badge').style.display='none';
+  document.getElementById('adm-btn').style.display='none';
+  document.getElementById('user-dot').classList.remove('adm-dot');
+  carregarProdutos();
+}
+
+function calcPreco(){
+  const h=parseFloat(document.getElementById('prod-horas').value)||0;
+  const g=parseFloat(document.getElementById('prod-gramas').value)||0;
+  if(!h&&!g){document.getElementById('preco-box').style.display='none';return}
+  const preco=((h*CUSTO_HORA)+(g*CUSTO_GRAMA))*MARGEM;
+  document.getElementById('preco-box').style.display='block';
+  document.getElementById('preco-val').textContent='R$ '+preco.toFixed(2).replace('.',',');
+  document.getElementById('preco-det').textContent=`(${h}h × R$${CUSTO_HORA} + ${g}g × R$${CUSTO_GRAMA}) × ${MARGEM}x`;
+}
+
+function previewImg(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const i=new Image();
+    i.onload=()=>{
+      const c=document.createElement('canvas');
+      let w=i.width,h=i.height,m=800;
+      if(w>m||h>m){if(w>h){h=Math.round(h*m/w);w=m;}else{w=Math.round(w*m/h);h=m;}}
+      c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);
+      prodImg=c.toDataURL('image/jpeg',0.82);
+      const p=document.getElementById('prod-preview');p.src=prodImg;p.style.display='block';
+    };i.src=e.target.result;
+  };r.readAsDataURL(f);
+}
+
+function abrirAdm(){
+  if(!isAdm())return;
+  prodImg=null;['prod-err','prod-ok'].forEach(hideMsg);
+  document.getElementById('prod-preview').style.display='none';
+  document.getElementById('preco-box').style.display='none';
+  ['prod-nome','prod-desc','prod-horas','prod-gramas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prod-badge').value='';document.getElementById('prod-file').value='';
+  carregarAdmLista();abrirOverlay('adm-overlay');
+}
+
+async function publicarProduto(){
+  const nome=document.getElementById('prod-nome').value.trim();
+  const descricao=document.getElementById('prod-desc').value.trim();
+  const cat=document.getElementById('prod-cat').value;
+  const badge=document.getElementById('prod-badge').value;
+  const horas=parseFloat(document.getElementById('prod-horas').value)||0;
+  const gramas=parseFloat(document.getElementById('prod-gramas').value)||0;
+  hideMsg('prod-err');hideMsg('prod-ok');
+  if(!nome)return showErr('prod-err','Informe o nome.');
+  if(!descricao)return showErr('prod-err','Informe a descrição.');
+  if(!horas&&!gramas)return showErr('prod-err','Informe o tempo ou os gramas.');
+  const preco=parseFloat(((horas*CUSTO_HORA+gramas*CUSTO_GRAMA)*MARGEM).toFixed(2));
+  const{error}=await sb.from('produtos').insert({nome,descricao,preco,cat,badge,img:prodImg||null,horas,gramas});
+  if(error)return showErr('prod-err','Erro: '+error.message);
+  prodImg=null;document.getElementById('prod-preview').style.display='none';
+  document.getElementById('preco-box').style.display='none';
+  ['prod-nome','prod-desc','prod-horas','prod-gramas'].forEach(id=>document.getElementById(id).value='');
+  showOk('prod-ok','✅ Produto adicionado!');carregarProdutos();carregarAdmLista();
+}
+
+async function delProd(id){
+  if(!confirm('Remover produto?'))return;
+  await sb.from('produtos').delete().eq('id',id);
+  carregarProdutos();carregarAdmLista();
+}
+
+async function carregarAdmLista(){
+  const el=document.getElementById('prod-lista');
+  const{data}=await sb.from('produtos').select('*').order('criado_em',{ascending:false});
+  if(!data||!data.length){el.innerHTML='<div style="color:var(--muted);font-size:13px">Nenhum produto cadastrado.</div>';return}
+  el.innerHTML=data.map(p=>`<div class="adm-item">${p.img?`<img src="${p.img}">`:'<div class="adm-thumb">📦</div>'}<div class="adm-info"><strong>${p.nome}</strong><span>R$ ${Number(p.preco).toFixed(2).replace('.',',')} · ⏱${p.horas||0}h · ⚖️${p.gramas||0}g</span></div><button class="btn-del" onclick="delProd(${p.id})">Remover</button></div>`).join('');
+}
+
+function cardHTML(p,din){
+  const c=Number(p.preco)>0;
+  const meta=din&&(p.horas||p.gramas)?`<div class="pmeta">⏱ ${p.horas||0}h · ⚖️ ${p.gramas||0}g</div>`:'';
+  return `<div class="product-card" data-cat="${p.cat}" data-nome="${encodeURIComponent(p.nome)}" data-preco="${p.preco}">
+    <div class="pimg">
+      ${p.img?`<img src="${p.img}" alt="${p.nome}">`:(p.emoji||'📦')}
+      ${p.badge?`<span class="pbadge ${BC[p.badge]||'bp'}">${p.badge}</span>`:''}
+      ${din&&isAdm()?`<button class="del-card" onclick="delProd(${p.id})">✕</button>`:''}
+    </div>
+    <div class="pbody">
+      <div class="pcat">${p.cat}</div>
+      <div class="pname">${p.nome}</div>
+      ${meta}
+      <div class="pdesc">${p.descricao}</div>
+      <div class="pfooter">
+        <div class="pprice">${c?'R$ '+Number(p.preco).toFixed(2).replace('.',','):'Consulte'}</div>
+        ${c?`<button class="btn-add" onclick="addCarrinho(this)">+ Carrinho</button>`:`<a href="#contato" class="btn-add">Orçamento</a>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function carregarProdutos(){
+  const grid=document.getElementById('product-grid');
+  if(grid) grid.innerHTML=FIXOS.map(p=>cardHTML(p,false)).join('');
+  carregarExtras();
+}
+
+async function carregarExtras(){
+  try{
+    const grid=document.getElementById('product-grid');
+    const{data}=await sb.from('produtos').select('*').order('criado_em',{ascending:false});
+    if(data&&data.length>0&&grid){
+      grid.innerHTML=FIXOS.map(p=>cardHTML(p,false)).join('')+data.map(p=>cardHTML(p,true)).join('');
+    }
+  }catch(e){console.log('extras não carregados:',e)}
+}
+
+function filtrar(btn,cat){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.product-card').forEach(c=>c.classList.toggle('hidden',cat!=='todos'&&c.dataset.cat!==cat));
+}
+
+function addCarrinho(btn){
+  if(!usuario){abrirLogin();return}
+  const card=btn.closest('.product-card');
+  const nome=decodeURIComponent(card.dataset.nome),preco=parseFloat(card.dataset.preco);
+  const img=card.querySelector('.pimg img')?.src||null;
+  const idx=carrinho.findIndex(i=>i.nome===nome);
+  if(idx>=0)carrinho[idx].qty++;else carrinho.push({nome,preco,qty:1,img});
+  atualizarContador();btn.textContent='✓ Adicionado';setTimeout(()=>btn.textContent='+ Carrinho',1200);
+}
+
+function atualizarContador(){
+  const t=carrinho.reduce((s,i)=>s+i.qty,0);
+  const c=document.getElementById('cart-count');c.textContent=t;c.style.display=t>0?'flex':'none';
+}
+
+function abrirCarrinho(){if(!usuario){abrirLogin();return}renderCarrinho();abrirOverlay('cart-overlay')}
+
+function renderCarrinho(){
+  const list=document.getElementById('cart-items-list');
+  if(!carrinho.length){list.innerHTML='<div class="cart-empty">🛒 Carrinho vazio</div>';document.getElementById('cart-total-val').textContent='R$ 0';return}
+  list.innerHTML=carrinho.map((item,i)=>`
+    <div class="cart-item">
+      <div class="cthumb">${item.img?`<img src="${item.img}">`:'📦'}</div>
+      <div class="cinfo"><div class="cname">${item.nome}</div><div class="cprice">R$ ${item.preco.toFixed(2).replace('.',',')} cada</div></div>
+      <div class="cqty"><button class="qty-btn" onclick="mudaQty(${i},-1)">−</button><span>${item.qty}</span><button class="qty-btn" onclick="mudaQty(${i},1)">+</button></div>
+    </div>`).join('');
+  document.getElementById('cart-total-val').textContent='R$ '+carrinho.reduce((s,i)=>s+i.preco*i.qty,0).toFixed(2).replace('.',',');
+  renderPix();
+}
+
+// ---- PIX (QR Code com valor do carrinho) ----
+const PIX_CHAVE='57340833803', PIX_NOME='LUCAS VOPPE SILVEIRA', PIX_CIDADE='SAO PAULO';
+function pixTLV(i,v){return i+String(v.length).padStart(2,'0')+v}
+function pixCRC(s){let c=0xFFFF;for(let k=0;k<s.length;k++){c^=s.charCodeAt(k)<<8;for(let j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF}return c.toString(16).toUpperCase().padStart(4,'0')}
+function pixPayload(valor){
+  const conta=pixTLV('00','br.gov.bcb.pix')+pixTLV('01',PIX_CHAVE);
+  const p=pixTLV('00','01')+pixTLV('26',conta)+pixTLV('52','0000')+pixTLV('53','986')+pixTLV('54',valor.toFixed(2))+pixTLV('58','BR')+pixTLV('59',PIX_NOME)+pixTLV('60',PIX_CIDADE)+pixTLV('62',pixTLV('05','***'))+'6304';
+  return p+pixCRC(p);
+}
+let pixAtual='';
+function renderPix(){
+  const box=document.getElementById('pix-box');
+  const total=carrinho.reduce((s,i)=>s+i.preco*i.qty,0);
+  if(!box)return;
+  const cb=document.getElementById('comp-box');
+  if(!(total>0)){box.style.display='none';cb.style.display='none';pixAtual='';atualizarBotaoEnviar();return}
+  const novo=pixPayload(total);
+  if(novo!==pixAtual){const fi=document.getElementById('pix-comprovante');if(fi)fi.value=''}
+  pixAtual=novo;
+  cb.style.display='block';
+  atualizarBotaoEnviar();
+  document.getElementById('pix-chave').textContent=PIX_CHAVE;
+  const el=document.getElementById('pix-qr');el.innerHTML='';
+  try{new QRCode(el,{text:pixAtual,width:180,height:180,correctLevel:QRCode.CorrectLevel.M})}
+  catch(e){el.textContent='QR indisponível agora: use o Pix copia e cola abaixo.'}
+  box.style.display='block';
+}
+function copiarPix(){
+  if(!pixAtual)return;
+  const ok=()=>alert('Pix copia e cola copiado! Cole no app do seu banco.');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(pixAtual).then(ok,()=>prompt('Copie o código Pix:',pixAtual))}
+  else prompt('Copie o código Pix:',pixAtual);
+}
+
+function mudaQty(i,d){carrinho[i].qty+=d;if(carrinho[i].qty<=0)carrinho.splice(i,1);atualizarContador();renderCarrinho()}
+
+function comprovanteArquivo(){const fi=document.getElementById('pix-comprovante');return fi&&fi.files&&fi.files[0]?fi.files[0]:null}
+function atualizarBotaoEnviar(){
+  const b=document.getElementById('btn-enviar-pedido');if(!b)return;
+  const f=comprovanteArquivo(),ok=!!f&&carrinho.length>0;
+  b.disabled=!ok;b.style.opacity=ok?'1':'.5';b.style.cursor=ok?'pointer':'not-allowed';
+  const n=document.getElementById('comp-nome');if(n)n.textContent=f?('Anexado: '+f.name):'';
+}
+
+async function finalizarPedido(){
+  if(!carrinho.length)return;
+  const f=comprovanteArquivo();
+  if(!f){alert('Anexe o comprovante do Pix para enviar o pedido.');return}
+  const itens=carrinho.map(i=>`• ${i.nome} x${i.qty} = R$ ${(i.preco*i.qty).toFixed(2).replace('.',',')}`).join('\n');
+  const total=carrinho.reduce((s,i)=>s+i.preco*i.qty,0);
+  const texto=`*[MAKER VOPPE - PEDIDO DO APP]*\n\nOlá! Sou ${usuario.nome} e quero fazer um pedido:\n\n${itens}\n\n*Total: R$ ${total.toFixed(2).replace('.',',')}*\n\nComprovante de pagamento em anexo.`;
+  // Celular: abre o compartilhamento já com a mensagem e o comprovante (escolha o WhatsApp da Maker Voppe)
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      await navigator.share({files:[f],text:texto});
+      return;
+    }
+  }catch(e){if(e&&e.name==='AbortError')return}
+  // Computador: abre a conversa com a mensagem; o comprovante é anexado na própria conversa
+  window.open('https://wa.me/5511993262850?text='+encodeURIComponent(texto),'_blank');
+  alert('Agora, na conversa do WhatsApp, anexe o comprovante do Pix e envie. O pedido só é aceito com o comprovante.');
+}
+
+// INIT — roda depois de todas as funções estarem definidas
+(function(){
+  const grid=document.getElementById('product-grid');
+  if(grid) grid.innerHTML=FIXOS.map(p=>cardHTML(p,false)).join('');
+  const s=ls(SK_S);if(s){usuario=s;onLogin();}
+  carregarExtras();
+})();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
+</body>
+</html>
