@@ -549,7 +549,9 @@ async function carregarExtras(){
     const grid=document.getElementById('product-grid');
     const{data}=await sb.from('produtos').select('*').order('criado_em',{ascending:false});
     if(data&&data.length>0&&grid){
-      grid.innerHTML=FIXOS.map(p=>cardHTML(p,false)).join('')+data.map(p=>cardHTML(p,true)).join('');
+      const nomesFixos=new Set(FIXOS.map(p=>String(p.nome).trim().toLowerCase()));
+      const extras=data.filter(p=>!nomesFixos.has(String(p.nome).trim().toLowerCase()));
+      grid.innerHTML=FIXOS.map(p=>cardHTML(p,false)).join('')+extras.map(p=>cardHTML(p,true)).join('');
     }
   }catch(e){console.log('extras não carregados:',e)}
 }
